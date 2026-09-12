@@ -1,0 +1,6 @@
+{
+  "name": "IP-SAKTI Sahayak",
+  "description": "Regulatory guidance and IP assistance chatbot for Ministry of Ayush with structured citations, jurisdiction switching, and human expert escalation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
