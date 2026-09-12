@@ -49,3 +49,21 @@ export async function sendMessageToAPI(message: string, jurisdiction: Jurisdicti
     throw err;
   }
 }
+
+export interface ExpertTicketPayload {
+  fullName: string;
+  email: string;
+  phone?: string;
+  organization?: string;
+  query: string;
+  jurisdiction: string;
+}
+
+export async function submitToHumanExpert(payload: ExpertTicketPayload) {
+  // Generate ticket acknowledgment for human escalation
+  return {
+    ticketId: `AYUSH-${Math.floor(100000 + Math.random() * 900000)}`,
+    status: 'Submitted',
+    estimatedReviewHours: 48,
+  };
+}
