@@ -3,6 +3,7 @@ export type Jurisdiction = 'India' | 'International';
 export interface LegalCitation {
   source: string;
   text: string;
+  confidence?: number;
 }
 
 export interface ChatMessage {

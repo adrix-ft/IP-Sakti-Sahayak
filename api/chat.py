@@ -36,6 +36,7 @@ class JurisdictionEnum(str, Enum):
 class Citation(BaseModel):
     source: str
     text: str
+    confidence: float = 0.0
 
 class QueryRequest(BaseModel):
     message: str = Field(..., min_length=2, max_length=1000)
@@ -74,6 +75,21 @@ async def chat_endpoint(request: QueryRequest):
                 citations=[]
             )
 
+        # 1.5 Agentic Routing: Classification
+        logger.info("Classifying query for Ayush formulation type...")
+        classification_prompt = f"Analyze this query: '{request.message}'. Does it clearly relate to or identify an Ayurvedic formulation type (like Classical, Proprietary, New Drug, Cosmetics, IP, Patent, Regulation)? If yes, reply 'VALID'. If it is completely ambiguous or entirely irrelevant, reply with a helpful clarifying question asking for the formulation type or legal context."
+        classification_res = gemini.models.generate_content(
+            model="gemini-3.6-flash",
+            contents=classification_prompt
+        )
+        classification_text = (classification_res.text or "").strip()
+        if "VALID" not in classification_text.upper():
+            logger.info("Query ambiguous, returning clarifying question.")
+            return ChatResponse(
+                answer=classification_text,
+                citations=[]
+            )
+
         # 2. Generate Embedding
         logger.info("Generating query embedding via Gemini...")
         embed_res = gemini.models.embed_content(
@@ -100,12 +116,16 @@ async def chat_endpoint(request: QueryRequest):
             metadata = doc.get("metadata", {})
             source = metadata.get("source", "Unknown Source")
             snippet = doc.get("content", "")[:200] + "..."
-            citations.append(Citation(source=source, text=snippet))
+            confidence = round(doc.get("similarity", 0) * 100, 1)
+            citations.append(Citation(source=source, text=snippet, confidence=confidence))
 
         # 4. Generate LLM Response
         logger.info("Calling Gemini LLM...")
         prompt = f"Answer strictly using the provided context. Do not use outside knowledge.\n\nContext:\n{context_string}\n\nQuestion: {request.message}"
-        system_instruction = f"You are an Ayush regulatory expert answering a question regarding {request.jurisdiction.value} jurisdiction."
+        system_instruction = (
+            f"You are an Ayush regulatory expert answering a question regarding {request.jurisdiction.value} jurisdiction. "
+            "IMPORTANT: Detect the language of the user's question, process the legal context, and OUTPUT your final response exactly in the same Indic language as the user's question."
+        )
 
         llm_response = gemini.models.generate_content(
             model="gemini-3.6-flash",
