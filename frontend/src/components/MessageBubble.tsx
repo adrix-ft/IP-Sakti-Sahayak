@@ -1,40 +1,24 @@
 import React from 'react';
 import { ChatMessage } from '../types';
 import { CitationCard } from './CitationCard';
-import { AlertCircle, RotateCcw } from 'lucide-react';
+import { FailureState } from './FailureState';
 
 interface MessageBubbleProps {
   message: ChatMessage;
   onRetry?: () => void;
+  onOpenExpertModal?: () => void;
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRetry }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onRetry, onOpenExpertModal }) => {
   const isUser = message.sender === 'user';
 
   if (message.isError || message.sender === 'system') {
     return (
-      <div className="flex justify-center mb-6 px-4 w-full">
-        <div className="bg-red-50 border border-red-500 rounded-lg p-4 max-w-3xl w-full shadow-sm">
-           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-             <div className="flex items-start gap-2">
-               <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-               <div>
-                 <h4 className="text-red-800 font-semibold text-sm">System Error</h4>
-                 <p className="text-red-700 text-sm mt-1">{message.text}</p>
-               </div>
-             </div>
-             {onRetry && (
-               <button 
-                 onClick={onRetry} 
-                 className="shrink-0 flex items-center justify-center gap-1.5 bg-red-100 hover:bg-red-200 text-red-800 border border-red-300 px-4 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer"
-               >
-                 <RotateCcw className="w-4 h-4" />
-                 Retry
-               </button>
-             )}
-           </div>
-        </div>
-      </div>
+      <FailureState 
+        errorMessage={message.text} 
+        onRetry={onRetry || (() => {})} 
+        onOpenExpertModal={onOpenExpertModal || (() => {})} 
+      />
     );
   }
 

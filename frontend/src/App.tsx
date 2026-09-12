@@ -2,6 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { MessageBubble } from './components/MessageBubble';
 import { ChatInput } from './components/ChatInput';
+import { IdleState } from './components/IdleState';
+import { ThinkingIndicator } from './components/ThinkingIndicator';
+import { PersistentFooter } from './components/PersistentFooter';
+import { ExpertEscalationModal } from './components/ExpertEscalationModal';
 import { ChatMessage, Jurisdiction } from './types';
 import { sendMessageToAPI } from './api/legalApi';
 
@@ -26,6 +30,7 @@ export default function App() {
   const [jurisdiction, setJurisdiction] = useState<Jurisdiction>('India');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [lastUserQuery, setLastUserQuery] = useState<string>('');
+  const [isExpertModalOpen, setIsExpertModalOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -100,27 +105,24 @@ export default function App() {
 
       <main className="flex-1 overflow-y-auto px-4 py-8">
         <div className="max-w-4xl mx-auto flex flex-col min-h-full">
-          {messages.map((msg) => (
-            <MessageBubble
-              key={msg.id}
-              message={msg}
-              onRetry={msg.isError ? handleRetry : undefined}
+          {messages.length === 1 ? (
+            <IdleState 
+              onSelectPrompt={handleSendMessage}
+              onOpenExpertModal={() => setIsExpertModalOpen(true)}
             />
-          ))}
+          ) : (
+            messages.map((msg) => (
+              <MessageBubble
+                key={msg.id}
+                message={msg}
+                onRetry={msg.isError ? handleRetry : undefined}
+                onOpenExpertModal={() => setIsExpertModalOpen(true)}
+              />
+            ))
+          )}
           
           {isGenerating && (
-             <div className="flex justify-start mb-6 pr-12">
-               <div className="flex items-start gap-4">
-                 <div className="w-9 h-9 rounded-full bg-white border border-gray-200 flex items-center justify-center flex-shrink-0 shadow-sm mt-1 animate-pulse">
-                   <div className="w-4 h-4 bg-gray-300 rounded-full" />
-                 </div>
-                 <div className="bg-white rounded-2xl rounded-tl-none px-5 py-4 shadow-sm border border-gray-100 flex items-center gap-2">
-                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-75" />
-                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150" />
-                 </div>
-               </div>
-             </div>
+             <ThinkingIndicator jurisdiction={jurisdiction} />
           )}
           <div ref={messagesEndRef} />
         </div>
@@ -130,6 +132,11 @@ export default function App() {
         onSendMessage={handleSendMessage}
         isGenerating={isGenerating}
         jurisdiction={jurisdiction}
+      />
+      <PersistentFooter />
+      <ExpertEscalationModal 
+        isOpen={isExpertModalOpen}
+        onClose={() => setIsExpertModalOpen(false)}
       />
     </div>
   );
