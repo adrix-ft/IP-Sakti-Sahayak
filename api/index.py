@@ -77,8 +77,9 @@ async def chat_endpoint(request: QueryRequest):
         # 2. Generate Embedding
         logger.info("Generating query embedding via Gemini...")
         embed_res = gemini.models.embed_content(
-            model="text-embedding-004",
+            model="gemini-embedding-2",
             contents=request.message,
+            config=types.EmbedContentConfig(output_dimensionality=768)
         )
         query_vector = embed_res.embeddings[0].values
 
