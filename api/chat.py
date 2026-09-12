@@ -58,7 +58,7 @@ def get_gemini() -> genai.Client:
         raise ValueError("Gemini credentials missing. Set GEMINI_API_KEY.")
     return genai.Client(api_key=key)
 
-@app.post("/api/chat", response_model=ChatResponse)
+@app.post("/", response_model=ChatResponse)
 async def chat_endpoint(request: QueryRequest):
     try:
         logger.info(f"Received request payload: {request.model_dump()}")
