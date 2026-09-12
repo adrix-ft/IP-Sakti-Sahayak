@@ -3,3 +3,5 @@ langchain-community
 chromadb
 sentence-transformers
 pypdf
+fastapi
+uvicorn[standard]
